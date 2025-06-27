@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>北港大学 | 教师端</title>
+    <link rel="icon" type="image/jpg" href="video/logo.png" sizes="32x32">
+    <link rel="stylesheet" href="css/normal.css">
+</head>
+<body>
+<video autoplay muted loop>
+    <source src="video/genish.mp4" type="video/mp4">  <!-- 替换为您的 MP4 文件路径 -->
+    您的浏览器不支持视频标签。
+</video>
+<div class="container">
+    <h1 style="text-align: center;">北港大学成绩管理系统----教师端</h1>
+    <h1 style="text-align: center;">欢迎老师 <<span id="userName"></span>> !</h1>
+
+    <h2 style="text-align: center;">班级成绩单</h2>
+    <!-- 排序选项 -->
+    <div style="text-align: center; margin: 20px;">
+        <button onclick="getGrade('id')" style="background-color: #8ff593">按学号排序</button>
+        <button onclick="getGrade('grade')" style="background-color: #8ff593">按成绩排序</button>
+    </div>
+
+    <div style="text-align: center; margin: 20px;">
+        <button id="batchGenerateBtn" onclick="toggleBatchGenerate()" class="blue-button">批量生成成绩</button>
+    </div>
+
+    <div id="classInfo" style=" margin: 20px;">
+        <p style="font-size: 1em;">
+            <strong>班级编号: </strong> <span id="searchClassId"></span>&nbsp;&nbsp;
+            <strong>班级课程: </strong> <span id="searchClassName"></span>&nbsp;&nbsp;
+            <strong>开课学期: </strong> <span id="searchClassTerm"></span>&nbsp;&nbsp;
+            <strong>班级总人数:</strong> <span id="searchClassNumStudent"></span>
+        </p>
+    </div>
+    <!-- 学生成绩表格 -->
+    <table id="gradesTable" border="1" style="width: 100%; margin-top: 20px; text-align: center;">
+        <thead>
+        <tr>
+            <th>学号</th>
+            <th>姓名</th>
+            <th>性别</th>
+            <th>等级</th>
+            <th>平时成绩</th>
+            <th>期中成绩</th>
+            <th>实验成绩</th>
+            <th>期末成绩</th>
+            <th>综合成绩</th>
+            <th>操作</th>  <!-- 新添加的操作列 -->
+        </tr>
+        </thead>
+        <tbody id="gradesTableBody">
+        <!-- 表格内容将通过 JavaScript 填充 -->
+        </tbody>
+    </table>
+
+
+
+
+
+
+
+
+    <!-- 退出按钮 -->
+    <button onclick="window.location.href='login.html';" class="danger-button" style="display: block; margin: 0 auto;">
+        退出
+    </button>
+
+    <!-- 注销账户按钮 -->
+    <button id="deleteAccountBtn" class="danger-button" style="display: block; margin: 20px auto;">
+        注销账户
+    </button>
+</div>
+
+<script>
+    const userId = sessionStorage.getItem('BG_userId');
+    var classId;
+    console.log(userId); // 在控制台打印出 ID
+    let grades=[];
+
+    // 定义一个函数来获取用户名
+    function fetchUserName() {
+        // 检查 userId 是否存在
+        if (userId) {
+            // 发起 GET 请求
+            fetch(`http://localhost:8080/selTeacherById/${userId}`)
+                .then(response => {
+                    // 检查响应是否成功
+                    if (!response.ok) {
+                        throw new Error('网络响应不是 OK');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    // 检查返回的数据是否有效
+                    if (data.code === 200) {
+                        document.getElementById('userName').textContent = data.data.teacher.name;
+                        document.getElementById('searchClassId').textContent = data.data.classroom.id;
+                        document.getElementById('searchClassName').textContent = data.data.classroom.name;
+                        document.getElementById('searchClassTerm').textContent = data.data.classroom.term;
+                        document.getElementById('searchClassNumStudent').textContent = data.data.classroom.numStudent;
+
+
+                    } else {
+                        console.error('Error in response data:', data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('获取用户名时发生错误:', error);
+                });
+        } else {
+            console.error('未找到 userId');
+        }
+    }
+    fetchUserName();
+
+    // 将-1的分数替换为“未考”的函数
+    function formatScore(score) {
+        return score === -1 ? "未考" : score;
+    }
+    function getGrade(sortType) {
+        if (userId) {
+            fetch(`http://localhost:8080/selTeacherById/${userId}`)
+                .then(response => {
+                    if (!response.ok) throw new Error('网络响应不是 OK');
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.code === 200) {
+                        classId = data.data.classroom.id;
+                        fetchGrades(sortType);
+                    } else {
+                        console.error('Error in response data:', data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('获取班级ID时发生错误:', error);
+                });
+        } else {
+            console.error('未找到 userId');
+        }
+    }
+
+    function fetchGrades(sortType) {
+        const url = sortType === 'id' ?
+            `http://localhost:8080/idRankingClassGrade/${classId}` :
+            `http://localhost:8080/gradeRankingClassGrade/${classId}`;
+
+        fetch(url)
+            .then(response => {
+                if (!response.ok) throw new Error('网络响应不是 OK');
+                return response.json();
+            })
+            .then(data => {
+                if (data.code === 200) {
+                    grades = data.data;
+                    populateGradesTable();
+                    //populateGradesTable(data.data);
+                } else {
+                    console.error('Error in response data:', data.message);
+                }
+            })
+            .catch(error => {
+                console.error('获取成绩列表时发生错误:', error);
+            });
+    }
+
+    function populateGradesTable() {
+        const tableBody = document.getElementById('gradesTableBody');
+        tableBody.innerHTML = ''; // 清空现有表格内容
+
+        // 创建一个数组来存储所有的 Promise
+        const promises = grades.map(item => {
+            return fetch(`http://localhost:8080/selStudentById/${item.studentId}`)
+                .then(response => {
+                    if (!response.ok) throw new Error('网络响应不是 OK');
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.code === 200) {
+                        const student = data.data;
+                        // 返回一个行的 HTML
+                        return `
+                        <tr data-student-id="${item.studentId}">
+                            <td>${item.studentId}</td>
+                            <td>${student.name}</td>
+                            <td>${student.sex}</td>
+                            <td>${student.level}</td>
+                            <td>${formatScore(item.usualScore)}</td>
+                            <td>${formatScore(item.middleScore)}</td>
+                            <td>${formatScore(item.experimentScore)}</td>
+                            <td>${formatScore(item.endScore)}</td>
+                            <td>${formatScore(item.sumScore)}</td>
+                            <td><button onclick="editGrade(this)"  class="modify-button">修改</button></td> <!-- 修改按钮 -->
+                        </tr>
+                    `;
+                    } else {
+                        console.error('Error in student data:', data.message);
+                        return '';  // 返回空字符串以保持数组长度一致
+                    }
+                })
+                .catch(error => {
+                    console.error('获取学生信息时发生错误:', error);
+                    return '';  // 返回空字符串以确保不会中断处理
+                });
+        });
+
+        // 使用 Promise.all 等待所有请求完成
+        Promise.all(promises).then(rows => {
+            // 过滤掉返回空字符串的行
+            const filteredRows = rows.filter(row => row !== '');
+            // 将所有的行一起插入到表格中
+            tableBody.innerHTML = filteredRows.join('');
+        });
+    }
+    getGrade('id');
+
+
+    document.getElementById('deleteAccountBtn').addEventListener('click', function() {
+        // 使用 fetch API 发送 DELETE 请求
+        if (confirm("您确定要注销账户吗？😢😢")) {
+            fetch(`http://localhost:8080/delTeacherById/${userId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+                .then(response => {
+                    if (response.ok) {
+                        // 注销成功后跳转到 login.html
+                        window.location.href = 'login.html';
+                    } else {
+                        // 处理错误
+                        alert('注销账户失败!');
+                    }
+                })
+                .catch(error => {
+                    console.error('出现错误:', error);
+                    alert('注销账户时发生错误!');
+                });
+        }
+    });
+
+
+    // 编辑成绩
+    function editGrade(button) {
+        const row = button.closest('tr');
+        const studentId = row.getAttribute('data-student-id');
+        const usualScore = row.cells[4].textContent.trim();
+        const middleScore = row.cells[5].textContent.trim();
+        const experimentScore = row.cells[6].textContent.trim();
+        const endScore = row.cells[7].textContent.trim();
+
+        row.cells[4].innerHTML = `<input type="number" min="1" max="100" style="width: 100px;" value="${usualScore}" />`;
+        row.cells[5].innerHTML = `<input type="number" min="1" max="100" style="width: 100px;" value="${middleScore}" />`;
+        row.cells[6].innerHTML = `<input type="number" min="1" max="100" style="width: 100px;" value="${experimentScore}" />`;
+        row.cells[7].innerHTML = `<input type="number" min="1" max="100" style="width: 100px;" value="${endScore}" />`;
+        button.textContent = "确定";  // 更改按钮文本
+        button.setAttribute('onclick', 'confirmEdit(this, ' + studentId + ')'); // 改变按钮的onclick事件
+    }
+
+    // 确认修改
+    function confirmEdit(button, studentId) {
+        console.log("班号"+classId)
+        console.log("学生"+studentId)
+        const row = button.closest('tr');
+        const usualScore = row.cells[4].querySelector('input').value;
+        const middleScore = row.cells[5].querySelector('input').value;
+        const experimentScore = row.cells[6].querySelector('input').value;
+        const endScore = row.cells[7].querySelector('input').value;
+
+        // 创建 URLSearchParams 对象
+        const params = new URLSearchParams();
+        params.append('id', studentId);
+        params.append('classId', classId);
+        params.append('usualScore', usualScore);
+        params.append('middleScore', middleScore);
+        params.append('experimentScore', experimentScore);
+        params.append('endScore', endScore);
+
+
+        // 执行 POST 请求
+        fetch('http://localhost:8080/modifyGrade', {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            body: params.toString()
+        })
+            .then(response => {
+                if (!response.ok) throw new Error('网络响应不是 OK');
+                return response.json();
+            })
+            .then(data => {
+                if (data.code === 200) {
+                    alert('修改成功！');
+                    getGrade('id');
+                } else {
+                    alert('修改失败：' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('发生错误:', error);
+            });
+
+        // 恢复按钮状态
+        button.textContent = "修改";
+        button.setAttribute('onclick', 'editGrade(this)'); // 恢复点击事件
+    }
+
+    // 切换按钮状态的函数
+    function toggleBatchGenerate() {
+        const button = document.getElementById('batchGenerateBtn');
+
+        // 判断当前按钮的状态
+        if (button.textContent === '批量生成成绩') {
+            button.textContent = '确定'; // 改为确定状态
+
+            // 显示复选框并隐藏修改按钮
+            const rows = document.querySelectorAll('#gradesTableBody tr');
+            rows.forEach(row => {
+                const studentId = row.getAttribute('data-student-id');
+                // 隐藏修改按钮并添加复选框
+                const modifyButton = row.querySelector('.modify-button');
+                modifyButton.style.display = 'none'; // 隐藏修改按钮
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.className = 'grade-checkbox';
+
+
+                row.appendChild(checkbox); // 添加复选框到当前行
+                // 将复选框插入到操作按钮的单元格
+                const actionCell = modifyButton.parentElement; // 获取操作按钮的单元格
+                actionCell.innerHTML = ''; // 清空当前单元格内容
+                // 设置 CSS 样式以确保复选框居中
+                actionCell.style.display = 'flex'; // 使单元格使用灵活布局
+                actionCell.style.justifyContent = 'center'; // 水平居中
+                actionCell.style.alignItems = 'center'; // 垂直居中
+                actionCell.appendChild(checkbox); // 添加复选框
+
+
+            });
+        } else {
+            // 获取选中的学生 ID
+            const selectedStudentIds = Array.from(document.querySelectorAll('.grade-checkbox:checked'))
+                .map(checkbox => {
+                    return checkbox.closest('tr').getAttribute('data-student-id'); // 获取学生ID
+                });
+
+            const classIdToSend = classId; // 使用现有的 classId
+
+            // 进行 POST 请求
+            if (selectedStudentIds.length > 0) {
+                // 构建 application/x-www-form-urlencoded 格式的请求体
+                const params = new URLSearchParams();
+                params.append('classId', classIdToSend);
+                selectedStudentIds.forEach(studentId => {
+                    params.append('studentIds', studentId); // 添加每一个 studentId
+                });
+
+                fetch('http://localhost:8080/manyGradeAuto', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    body: params.toString() // 发送 URL 编码后的数据
+                })
+                    .then(response => {
+                        if (!response.ok) throw new Error('网络响应不是 OK');
+                        return response.json();
+                    })
+                    .then(data => {
+                        if (data.code === 200) {
+                            alert('成绩生成成功！');
+                            getGrade('id'); // 刷新成绩表
+                        } else {
+                            alert('生成成绩失败: ' + data.message);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('发生错误:', error);
+                    });
+            } else {
+                alert('请至少选择一名学生。');
+                getGrade('id'); // 刷新成绩表
+            }
+
+            // 恢复按钮状态
+            button.textContent = '批量生成成绩';
+
+            // 隐藏复选框，恢复修改按钮
+            const rows = document.querySelectorAll('#gradesTableBody tr');
+            rows.forEach(row => {
+                // const checkbox = row.querySelector('.grade-checkbox');
+                // if (checkbox) {
+                //     checkbox.parentNode.removeChild(checkbox); // 移除复选框
+                // }
+                // const modifyButton = row.querySelector('.modify-button');
+                // modifyButton.style.display = 'inline'; // 恢复显示修改按钮
+                const actionCell = row.querySelector('td:last-child'); // 选择操作列
+                const checkbox = row.querySelector('.grade-checkbox');
+                if (checkbox) {
+                    checkbox.parentNode.removeChild(checkbox); // 移除复选框
+                }
+                const modifyButton = row.querySelector('.modify-button');
+                modifyButton.style.display = 'inline'; // 恢复显示修改按钮
+                actionCell.innerHTML = ''; // 清空当前单元格内容
+                actionCell.appendChild(modifyButton); // 恢复修改按钮到操作列
+            });
+        }
+    }
+
+</script>
+</body>
+</html>

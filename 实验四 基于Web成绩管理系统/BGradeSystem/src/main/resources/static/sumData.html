@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>北港大学 | 教务端</title>
+  <link rel="icon" type="image/jpg" href="video/logo.png" sizes="32x32">
+  <link rel="stylesheet" href="css/normal.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
+  <style>
+    .container {
+      width: 80%;
+      margin: auto;
+      text-align: center;
+    }
+    canvas {
+      margin: 20px 0;
+    }
+  </style>
+</head>
+<body>
+<video autoplay muted loop>
+  <source src="video/Waves.mp4" type="video/mp4">  <!-- 替换为您的 MP4 文件路径 -->
+  您的浏览器不支持视频标签。
+</video>
+<div class="container">
+  <h1>北港大学成绩管理系统----教务端 | 数据统计</h1><br>
+
+  <button onclick="window.location.href='manager.html';" class="danger-button" style="display: block; margin: 0 auto;">
+    返回
+  </button>
+
+
+  <!-- 总成绩条形图 -->
+  <canvas id="totalGradeChart"></canvas>
+
+  <!-- 单科成绩条形图 -->
+  <div id="courseCharts"></div>
+</div>
+
+<script>
+  const labels = ["100~90", "90~80", "80~70", "70~60", "60~50", "50~40", "40~30", "30~0"];
+
+  async function fetchData(url) {
+    const response = await fetch(url);
+    const data = await response.json();
+    return data;
+  }
+
+  async function createTotalGradeChart() {
+    const totalData = await fetchData('http://localhost:8080/gpaStatistics');
+    const ctx = document.getElementById('totalGradeChart').getContext('2d');
+    new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: labels,
+        datasets: [{
+          label: '总成绩分数段统计分布',
+          data: totalData.data,
+          backgroundColor: [
+            'rgba(255, 0, 0, 0.6)',
+            'rgba(255, 128, 0, 0.6)',
+            'rgba(255, 255, 0, 0.6)',
+            'rgba(128, 255, 0, 0.6)',
+            'rgba(0, 255, 0, 0.6)',
+            'rgba(0, 128, 255, 0.6)',
+            'rgba(0, 0, 255, 0.6)',
+            'rgba(0, 0, 128, 0.6)'
+          ],
+        }]
+      },
+      options: {
+        scales: {
+          y: {
+            beginAtZero: true
+          }
+        },
+        plugins: {
+          legend: {
+            labels: {
+              font: {
+                size: 20 // 设置字体大小为 20（您可以根据需要调整这个值）
+              }
+            }
+          },
+          tooltip: {
+            callbacks: {
+              label: function(context) {
+                return context.label + ': ' + context.raw;
+              }
+            }
+          }
+        }
+      }
+    });
+  }
+
+  async function createCourseCharts() {
+    const courseData = await fetchData('http://localhost:8080/courseStatistics');
+    const courseChartsContainer = document.getElementById('courseCharts');
+
+    for (const [courseName, courseStats] of Object.entries(courseData.data)) {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      courseChartsContainer.appendChild(canvas);
+
+      new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: '<'+courseName+'> 成绩分数段统计分布',
+            data: courseStats,
+            backgroundColor: [
+              'rgba(255, 0, 0, 0.6)',
+              'rgba(255, 128, 0, 0.6)',
+              'rgba(255, 255, 0, 0.6)',
+              'rgba(128, 255, 0, 0.6)',
+              'rgba(0, 255, 0, 0.6)',
+              'rgba(0, 128, 255, 0.6)',
+              'rgba(0, 0, 255, 0.6)',
+              'rgba(0, 0, 128, 0.6)'
+            ],
+          }]
+        },
+        options: {
+          scales: {
+            y: {
+              beginAtZero: true
+            }
+          },
+          plugins: {
+            legend: {
+              labels: {
+                font: {
+                  size: 20 // 设置字体大小为 20（您可以根据需要调整这个值）
+                }
+              }
+            },
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  return context.label + ': ' + context.raw;
+                }
+              }
+            }
+          }
+        }
+      });
+    }
+  }
+
+  // 生成图表
+  createTotalGradeChart();
+  createCourseCharts();
+</script>
+</body>
+</html>

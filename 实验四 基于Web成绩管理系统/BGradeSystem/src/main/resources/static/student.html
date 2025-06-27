@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>北港大学 | 学生端</title>
+    <link rel="icon" type="image/jpg" href="video/logo.png" sizes="32x32">
+    <link rel="stylesheet" href="css/normal.css">
+</head>
+
+<body>
+<video autoplay muted loop>
+    <source src="video/Wave.mp4" type="video/mp4">  <!-- 替换为您的 MP4 文件路径 -->
+    您的浏览器不支持视频标签。
+</video>
+<div class="container" style="max-width: 900px;">
+    <h1 style="text-align: center;">北港大学成绩管理系统----学生端</h1>
+    <!-- 学生基本信息显示 -->
+    <div id="studentInfo" style=" margin: 20px;">
+        <p style="font-size: 1.2em;"><strong>学号: </strong> <span id="studentId"></span></p>
+        <p style="font-size: 1.2em;"><strong>姓名: </strong> <span id="studentName"></span></p>
+        <p style="font-size: 1.2em;"><strong>性别: </strong> <span id="studentSex"></span></p>
+        <p style="font-size: 1.2em;"><strong>等级: </strong> <span id="studentLevel"></span></p>
+        <p style="font-size: 1.2em;"><strong>总成绩:</strong> <span id="studentGPA"></span></p>
+    </div>
+
+    <button id="autoSelectCourseBtn" class="blue-button" style="display: block; margin: 10px auto;">
+        一键自动选课
+    </button>
+
+    <!-- 所选课程成绩表格 -->
+    <h2 style="text-align: center;">成绩单</h2>
+    <table id="gradesTable" border="1" style="margin: 20px auto; width: 100%; text-align: center;">
+        <thead>
+        <tr>
+            <th>班级号</th>
+            <th>课程名称</th>
+            <th>学分</th>
+            <th>学期</th>
+            <th>平时成绩</th>
+            <th>期中成绩</th>
+            <th>实验成绩</th>
+            <th>期末成绩</th>
+            <th>综合成绩</th>
+        </tr>
+        </thead>
+        <tbody>
+        <!-- 表格内容由 JavaScript 动态生成 -->
+        </tbody>
+    </table>
+
+    <!-- 退出按钮 -->
+    <button onclick="window.location.href='login.html';" class="danger-button" style="display: block; margin: 0 auto;">
+        退出
+    </button>
+
+    <!-- 注销账户按钮 -->
+    <button id="deleteAccountBtn" class="danger-button" style="display: block; margin: 20px auto;">
+        注销账户
+    </button>
+</div>
+
+<script>
+    const userId = sessionStorage.getItem('BG_userId');
+    console.log(userId); // 在控制台打印出 ID
+
+    // 将-1的分数替换为“未考”的函数
+    function formatScore(score) {
+        return score === -1 ? "未考" : score;
+    }
+
+    // 获取学生信息和成绩的函数
+    function fetchStudentData() {
+        fetch(`http://localhost:8080/searchStudentGrade/${userId}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.code === 200) {
+                    // 填充学生基本信息
+                    const student = data.data.student;
+                    document.getElementById("studentId").textContent = student.id;
+                    document.getElementById("studentName").textContent = student.name;
+                    document.getElementById("studentSex").textContent = student.sex;
+                    document.getElementById("studentLevel").textContent = student.level;
+                    document.getElementById("studentGPA").textContent = student.gpa; // 保留两位小数
+
+                    // 填充成绩表
+                    const grades = data.data.grade;
+                    const tbody = document.getElementById("gradesTable").getElementsByTagName("tbody")[0];
+                    grades.forEach(grade => {
+                        const row = tbody.insertRow();
+                        row.insertCell(0).textContent = grade.classroomId;
+                        row.insertCell(1).textContent = grade.courseName;
+                        row.insertCell(2).textContent = grade.credit;
+                        row.insertCell(3).textContent = grade.term;
+                        row.insertCell(4).textContent = formatScore(grade.usualScore);
+                        row.insertCell(5).textContent = formatScore(grade.middleScore);
+                        row.insertCell(6).textContent = formatScore(grade.experimentScore);
+                        row.insertCell(7).textContent = formatScore(grade.endScore);
+                        row.insertCell(8).textContent = formatScore(grade.sumScore);
+                    });
+                } else {
+                    alert('查询失败: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('获取学生数据时出现错误:', error);
+                alert('获取学生数据时发生错误!');
+            });
+    }
+
+    // 获取学生数据
+    fetchStudentData();
+
+    document.getElementById('deleteAccountBtn').addEventListener('click', function() {
+        // 使用 fetch API 发送 DELETE 请求
+        if (confirm("您确定要注销账户吗？😢😢")) {
+            fetch(`http://localhost:8080/delStudentById/${userId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+                .then(response => {
+                    if (response.ok) {
+                        // 注销成功后跳转到 login.html
+                        window.location.href = 'login.html';
+                    } else {
+                        // 处理错误
+                        alert('注销账户失败!');
+                    }
+                })
+                .catch(error => {
+                    console.error('出现错误:', error);
+                    alert('注销账户时发生错误!');
+                });
+        }
+    });
+
+    // 处理自动选课请求
+    document.getElementById('autoSelectCourseBtn').addEventListener('click', function() {
+        autoSelectCourse(userId);
+    });
+
+    function autoSelectCourse(userId) {
+        // 检查 userId 是否存在
+        if (!userId) {
+            alert('未找到用户ID，请登录后再试。');
+            return;
+        }
+
+        // 使用 URLSearchParams 构造请求体
+        const params = new URLSearchParams();
+        params.append('id', userId);
+
+        // 创建 POST 请求
+        fetch('http://localhost:8080/autoSelectCourse', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            body: params.toString()  // 将参数转换为字符串
+        })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('网络响应不是 OK');
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.code === 200) {
+                    alert(data.message);
+                    window.location.reload();  // 刷新页面
+                } else {
+                    console.error('请求出错:', data.message);
+                    alert('自动选课失败：' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('发生错误:', error);
+                alert('发生错误，请稍后再试。');
+            });
+    }
+</script>
+</body>
+</html>

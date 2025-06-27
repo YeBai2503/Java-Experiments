@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>北港大学 | 登录</title>
+  <link rel="icon" type="image/jpg" href="video/logo.png" sizes="32x32">
+<!--  <link rel="stylesheet" href="css/normal.css">-->
+  <style>
+    body, html {
+      height: 100%;
+      margin: 0;
+      font-family: Arial, sans-serif;
+      display: flex;
+      align-items: center; /* 垂直居中 */
+      justify-content: center; /* 水平居中 */
+      position: relative;
+      overflow: hidden; /* 避免背景视频溢出 */
+    }
+
+    video {
+      position: fixed; /* 使视频固定在视口中 */
+      top: 0; /* 视频顶部对齐页面顶部 */
+      left: 0; /* 视频左侧对齐页面左侧 */
+      width: 100%; /* 视频宽度 100% */
+      height: 100%; /* 视频高度 100% */
+      object-fit: cover; /* 保持视频纵横比并覆盖整个页面 */
+      z-index: -1; /* 背景视频位于所有元素之下 */
+    }
+
+    .container {
+      width: 18vw; /* 宽度设置为 40% */
+      z-index: 1; /* 确保内容在视频上方 */
+      background: rgba(255, 255, 255, 0.8); /* 白色半透明背景 */
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    }
+
+    .header {
+      text-align: center;
+    }
+
+    .error {
+      color: red;
+      font-weight: bold;
+      text-align: center;
+    }
+
+    .input-wrapper {
+      margin-bottom: 15px;
+      position: relative;
+    }
+
+    .input-wrapper input {
+      width: 100%;
+      padding: 10px 40px 10px 10px; /* 为右侧留出空间，以便放置眼睛按钮 */
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      box-sizing: border-box;
+    }
+
+    .eye-button {
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-20%); /* 垂直居中 */
+      cursor: pointer;
+      background: none;
+      border: none;
+      font-size: 20px; /* 调整图标大小 */
+      display: none; /* 默认隐藏 */
+    }
+
+    .switch-page {
+      text-align: center;
+    }
+
+    .switch-page button {
+      padding: 10px 20px; /* 添加内边距 */
+      font-size: 16px; /* 字体大小 */
+      color: white; /* 字体颜色 */
+      background-color: #4CAF50; /* 按钮背景颜色 */
+      border: none; /* 去掉边框 */
+      border-radius: 5px; /* 圆角边框 */
+      cursor: pointer; /* 鼠标悬停时显示为手型 */
+      transition: background-color 0.3s, transform 0.3s; /* 添加过渡效果 */
+    }
+
+    .switch-page button:hover {
+      background-color: #45a049; /* 悬停时的背景颜色 */
+      transform: translateY(-2px); /* 悬停时向上移动 */
+    }
+
+    .switch-page button:active {
+      transform: translateY(1px); /* 按钮点击时微微下沉 */
+    }
+  </style>
+</head>
+<body>
+<video autoplay muted loop>
+  <source src="video/Wave.mp4" type="video/mp4">
+  您的浏览器不支持视频标签。
+</video>
+<div class="container">
+  <div class="header">
+    <h1>登录</h1>
+  </div>
+  <div class="switch-role" style="text-align: center;">
+    <label>
+      <input type="radio" name="role" value="student" checked> 学生
+    </label>
+    <label>
+      <input type="radio" name="role" value="teacher"> 教师
+    </label>
+    <label>
+      <input type="radio" name="role" value="manager"> 教务
+    </label>
+  </div>
+  <form id="loginForm" method="post">
+    <div class="input-wrapper">
+      账号:<input type="text" id="loginUsername" name="id" placeholder="请输入账号" required>
+    </div>
+    <div class="input-wrapper">
+      密码:<input type="password" id="loginPassword" name="password" placeholder="请输入密码" required>
+      <button type="button" class="eye-button" id="togglePassword">
+        👁️
+      </button>
+    </div>
+    <div class="error" id="loginError"></div>
+    <div class="switch-page">
+      <button type="submit">登录</button>
+    </div>
+  </form>
+  <div class="switch-page">
+    <p>没有账户？<a href="register.html">点此注册</a></p>
+  </div>
+</div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+    const loginForm = document.getElementById("loginForm");
+    const errorMessageElement = document.getElementById("loginError");
+
+    const roleInputs = document.querySelectorAll('input[name="role"]');
+    const idInput = document.getElementById("loginUsername");
+    const passwordInput = document.getElementById("loginPassword");
+    const togglePasswordButton = document.getElementById("togglePassword");
+
+    // 点击角色或输入框时清除错误信息
+    roleInputs.forEach(input => {
+      input.addEventListener("change", () => {
+        errorMessageElement.textContent = "";
+      });
+    });
+
+    idInput.addEventListener("input", () => {
+      errorMessageElement.textContent = "";
+    });
+
+    passwordInput.addEventListener("input", () => {
+      errorMessageElement.textContent = "";
+      togglePasswordButton.style.display = "block"; // 显示眼睛按钮
+    });
+
+    passwordInput.addEventListener("focus", () => {
+      togglePasswordButton.style.display = "block"; // 显示眼睛按钮
+    });
+
+    passwordInput.addEventListener("blur", () => {
+      if (passwordInput.value === "") {
+        togglePasswordButton.style.display = "none"; // 隐藏眼睛按钮
+      }
+    });
+    togglePasswordButton.addEventListener("click", () => {
+      // 切换密码的显示和隐藏
+      const type = passwordInput.type === "password" ? "text" : "password";
+      passwordInput.type = type;
+      togglePasswordButton.textContent = type === "password" ? "👁️" : "🙈"; // 更改按钮图标
+    });
+
+
+
+    loginForm.addEventListener("submit", function(event) {
+      event.preventDefault(); // 防止表单默认提交
+
+      const formData = new FormData(loginForm);
+      const role = document.querySelector('input[name="role"]:checked').value; // 确保角色值已定义
+      const id = formData.get("id").trim();
+
+      // 检查 ID 是否为有效的数字
+      if (isNaN(id) || id === "") {
+        errorMessageElement.textContent = "ID 必须是有效的数字!";
+        return;
+      }
+
+      let url;
+
+      // 选择正确的提交 URL
+      switch (role) {
+        case "student":
+          url = "http://localhost:8080/loginStudent";
+          break;
+        case "teacher":
+          url = "http://localhost:8080/loginTeacher";
+          break;
+        case "manager":
+          url = "http://localhost:8080/loginManager";
+          break;
+        default:
+          errorMessageElement.textContent = "未知角色类型!";
+          return;
+      }
+
+      // 发送 POST 请求
+      fetch(url, {
+        method: 'POST',
+        body: new URLSearchParams(formData) // 明确使用 x-www-form-urlencoded 格式
+      })
+              .then(response => response.json())
+              .then(data => {
+                if (data.code === 200 && data.message === "true") {
+                  sessionStorage.setItem('BG_userId', id); // 保存用户 ID 到 sessionStorage
+                  // 根据角色进行跳转
+                  switch (role) {
+                    case "student":
+                      window.location.href = "student.html";
+                      break;
+                    case "teacher":
+                      window.location.href = "teacher.html";
+                      break;
+                    case "manager":
+                      window.location.href = "manager.html";
+                      break;
+                  }
+                } else {
+                  errorMessageElement.textContent = "登录失败，请检查您的账号和密码";
+                }
+              })
+              .catch(error => {
+                errorMessageElement.textContent = "网络错误，请重试";
+              });
+    });
+  });
+</script>
+</body>
+</html>

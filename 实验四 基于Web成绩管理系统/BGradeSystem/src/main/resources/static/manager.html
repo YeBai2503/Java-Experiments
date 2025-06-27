@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>北港大学 | 教务端</title>
+  <link rel="icon" type="image/jpg" href="video/logo.png" sizes="32x32">
+  <link rel="stylesheet" href="css/normal.css">
+</head>
+<body>
+<video autoplay muted loop>
+  <source src="video/Waves.mp4" type="video/mp4">  <!-- 替换为您的 MP4 文件路径 -->
+  您的浏览器不支持视频标签。
+</video>
+<div class="container">
+  <h1 style="text-align: center;">北港大学成绩管理系统----教务端</h1>
+
+  <h1 style="text-align: center;">欢迎用户 <<span id="userName"></span>> !</h1>
+
+
+  <div style="display: flex; flex-wrap: wrap; justify-content: center;">
+    <button onclick="window.location.href='sumData.html';" class="blue-button" style="margin: 10px;">
+      成绩分数段统计分布
+    </button>
+    <button onclick="window.location.href='sumRank.html';" class="blue-button" style="margin: 10px;">
+      学生总排名
+    </button>
+    <button onclick="oneProduceRequest()" class="blue-button" style="margin: 10px;">
+      一键生成所有数据
+    </button>
+    <button onclick="clearDatabaseRequest()" class="blue-button" style="margin: 10px;">
+      清除数据库
+    </button>
+    <button onclick="chooseClassroomRequest()" class="blue-button" style="margin: 10px;">
+      一键分班
+    </button>
+    <button onclick="examRequest()" class="blue-button" style="margin: 10px;">
+      一键考试
+    </button>
+  </div>
+
+  <!-- 退出按钮 -->
+  <button onclick="window.location.href='login.html';" class="danger-button" style="display: block; margin: 0px auto;">
+    退出
+  </button><br>
+
+  <!-- 注销账户按钮 -->
+  <button id="deleteAccountBtn" class="danger-button" style="display: block; margin: 0px auto;">
+    注销账户
+  </button><br>
+
+
+  <div style="text-align: center; margin: 20px;">
+    <h2>搜索学生成绩</h2>
+    <input type="text" id="searchInput" placeholder="请输入学生名字或学号" style="padding: 10px; width: 300px;">
+    <button id="searchBtn" style="padding: 10px;">搜索</button>
+  </div>
+
+  <div id="studentInfo" style=" margin: 20px;">
+    <p style="font-size: 1em;"><strong>学号: </strong> <span id="searchStudentId"></span>&nbsp;&nbsp;
+    <strong>姓名: </strong> <span id="searchStudentName"></span>&nbsp;&nbsp;
+    <strong>性别: </strong> <span id="searchStudentSex"></span>&nbsp;&nbsp;
+    <strong>等级: </strong> <span id="searchStudentLevel"></span>&nbsp;&nbsp;
+    <strong>总成绩:</strong> <span id="searchStudentGPA"></span></p>
+  </div>
+  <table id="gradesTable2" border="1" style="margin: 20px auto; width: 100%; text-align: center;">
+    <thead>
+    <tr>
+      <th>班级号</th>
+      <th>课程名称</th>
+      <th>学分</th>
+      <th>学期</th>
+      <th>平时成绩</th>
+      <th>期中成绩</th>
+      <th>实验成绩</th>
+      <th>期末成绩</th>
+      <th>综合成绩</th>
+    </tr>
+    </thead>
+    <tbody>
+    <!-- 表格内容由 JavaScript 动态生成 -->
+    </tbody>
+  </table>
+
+  <!-- 新增课程信息表格 -->
+  <br><h2 style="text-align: center;">课程信息</h2>
+  <table id="courseTable" border="1" style="margin: 20px auto; width: 100%; text-align: center;">
+    <thead>
+    <tr>
+      <th>课程号</th>
+      <th>课程名称</th>
+      <th>学分</th>
+      <th>难度</th>
+      <th>选修总人数</th>
+      <th>操作</th>
+    </tr>
+    </thead>
+    <tbody>
+    <!-- 课程信息表格内容将由 JavaScript 填充 -->
+    </tbody>
+    <tfoot>
+    <tr>
+      <td><input type="text" id="newCourseId" placeholder="课程号"></td>
+      <td><input type="text" id="newCourseName" placeholder="课程名称"></td>
+      <td><input type="number" id="newCourseCredit" min="1" max="5" placeholder="学分"></td>
+      <td><input type="number" id="newCourseDifficulty" min="1" max="5" placeholder="难度"></td>
+      <td></td>
+      <td><button onclick="addCourse()" class="blue-button">增设</button></td>
+    </tr>
+    </tfoot>
+  </table>
+
+  <h2 style="text-align: center;">班级信息</h2>
+  <table id="classroomsTable" border="1" style="margin: 20px auto; width: 100%; text-align: center;">
+    <thead>
+    <tr>
+      <th>班级号</th>
+      <th>班名</th>
+      <th>课程号</th>
+      <th>教师号</th>
+      <th>教师名</th>
+      <th>学期</th>
+      <th>人数</th>
+      <th>操作</th>
+    </tr>
+    </thead>
+    <tbody id="classroomsTableBody">
+    <!-- 表格内容由 JavaScript 动态生成 -->
+    </tbody>
+    <tfoot>
+    <tr>
+    <td><input type="text" id="newClassroomId" style="width: 100px;" placeholder="班级号" required></td>
+    <td><input type="text" id="newClassroomName" style="width: 100px;" placeholder="班名" required></td>
+    <td><input type="text" id="newCourseId2" style="width: 100px;" placeholder="课程号" required></td>
+    <td><input type="text" id="newTeacherId" style="width: 100px;" placeholder="教师号" required></td>
+    <td></td>
+    <td><input type="number" id="newTerm" min="1" max="8" placeholder="学期" required></td>
+    <td></td>
+    <td><button onclick="addClassroom()" class="blue-button">增设</button></td>
+    </tr>
+    </tfoot>
+
+  </table>
+
+
+
+
+
+</div>
+
+<script>
+  const userId = sessionStorage.getItem('BG_userId');
+  console.log(userId); // 在控制台打印出 ID
+
+
+  // 定义一个函数来获取用户名
+  function fetchUserName() {
+    // 检查 userId 是否存在
+    if (userId) {
+      // 发起 GET 请求
+      fetch(`http://localhost:8080/selManagerById/${userId}`)
+              .then(response => {
+                // 检查响应是否成功
+                if (!response.ok) {
+                  throw new Error('网络响应不是 OK');
+                }
+                return response.json();
+              })
+              .then(data => {
+                // 检查返回的数据是否有效
+                if (data.code === 200) {
+                  // 将返回的用户名填充到指定的 <span>
+                  document.getElementById('userName').textContent = data.data.name;
+                } else {
+                  console.error('Error in response data:', data.message);
+                }
+              })
+              .catch(error => {
+                console.error('获取用户名时发生错误:', error);
+              });
+    } else {
+      console.error('未找到 userId');
+    }
+  }
+  fetchUserName();
+
+  document.getElementById('deleteAccountBtn').addEventListener('click', function() {
+    // 使用 fetch API 发送 DELETE 请求
+    if (confirm("您确定要注销账户吗？😢😢")) {
+      fetch(`http://localhost:8080/delManagerById/${userId}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      })
+              .then(response => {
+                if (response.ok) {
+                  // 注销成功后跳转到 login.html
+                  window.location.href = 'login.html';
+                } else {
+                  // 处理错误
+                  alert('注销账户失败!');
+                }
+              })
+              .catch(error => {
+                console.error('出现错误:', error);
+                alert('注销账户时发生错误!');
+              });
+    }
+  });
+
+
+  function formatScore(score) {
+    return score === -1 ? "未考" : score;
+  }
+  // 搜索学生数据的函数
+  function fetchStudentData2(idOrName) {
+    fetch(`http://localhost:8080/searchStudentGrade/${idOrName}`)
+            .then(response => response.json())
+            .then(data => {
+              if (data.code === 200) {
+
+                // 填充学生基本信息
+                const student = data.data.student;
+                document.getElementById("searchStudentId").textContent = student.id;
+                document.getElementById("searchStudentName").textContent = student.name;
+                document.getElementById("searchStudentSex").textContent = student.sex;
+                document.getElementById("searchStudentLevel").textContent = student.level;
+                document.getElementById("searchStudentGPA").textContent = student.gpa; // 保留两位小数
+
+                // 填充成绩表
+                const grades = data.data.grade;
+                const tbody = document.getElementById("gradesTable2").getElementsByTagName("tbody")[0];
+                tbody.innerHTML = "";  // 清空原有表格内容
+                grades.forEach(grade => {
+                  const row = tbody.insertRow();
+                  row.insertCell(0).textContent = grade.classroomId;
+                  row.insertCell(1).textContent = grade.courseName;
+                  row.insertCell(2).textContent = grade.credit;
+                  row.insertCell(3).textContent = grade.term;
+                  row.insertCell(4).textContent = formatScore(grade.usualScore);
+                  row.insertCell(5).textContent = formatScore(grade.middleScore);
+                  row.insertCell(6).textContent = formatScore(grade.experimentScore);
+                  row.insertCell(7).textContent = formatScore(grade.endScore);
+                  row.insertCell(8).textContent = formatScore(grade.sumScore);
+                });
+              } else {
+                alert('查询失败: ' + data.message);
+              }
+            })
+            .catch(error => {
+              console.error('获取学生数据时出现错误:', error);
+              alert('获取学生数据时发生错误!');
+            });
+  }
+
+  // 添加搜索按钮的事件监听
+  document.getElementById('searchBtn').addEventListener('click', function() {
+    const searchInput = document.getElementById('searchInput').value.trim();
+    if (searchInput) {
+      fetchStudentData2(searchInput);  // 调用函数搜索学生
+    } else {
+      alert("请输入学生名字或学号");
+    }
+  });
+
+  async function oneProduceRequest() {
+    try {
+      const response = await fetch('http://localhost:8080/GenerateData', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({}) // 发送的请求体可以是空对象
+      });
+      console.log(`POST请求已发送，状态: ${response.status}`);
+      alert('一键生成数据成功!');
+      window.location.reload();
+    } catch (error) {
+      console.error('发送POST请求时发生错误:', error);
+    }
+  }
+  async function clearDatabaseRequest() {
+    try {
+      const response = await fetch('http://localhost:8080/clearData', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({}) // 发送的请求体可以是空对象
+      });
+      console.log(`DELETE请求已发送，状态: ${response.status}`);
+      alert('清除数据库成功!');
+      window.location.reload();
+    } catch (error) {
+      console.error('发送DELETE请求时发生错误:', error);
+    }
+  }
+  async function chooseClassroomRequest() {
+    try {
+      const response = await fetch('http://localhost:8080/chooseClass', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({}) // 发送的请求体可以是空对象
+      });
+      console.log(`POST请求已发送，状态: ${response.status}`);
+      alert('一键分班成功!');
+      window.location.reload();
+    } catch (error) {
+      console.error('发送POST请求时发生错误:', error);
+    }
+  }
+  async function examRequest() {
+    try {
+      const response = await fetch('http://localhost:8080/generateGrade', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({}) // 发送的请求体可以是空对象
+      });
+      console.log(`POST请求已发送，状态: ${response.status}`);
+      alert('一键考试成功!');
+      window.location.reload();
+    } catch (error) {
+      console.error('发送POST请求时发生错误:', error);
+    }
+  }
+
+  function fetchCourseInfo() {
+    fetch('http://localhost:8080/allCourse')
+            .then(response => {
+              if (!response.ok) throw new Error('网络响应不是 OK');
+              return response.json();
+            })
+            .then(data => {
+              if (data.code === 200) {
+                populateCourseTable(data.data);
+              } else {
+                console.error('Error in response data:', data.message);
+              }
+            })
+            .catch(error => {
+              console.error('获取课程信息时发生错误:', error);
+            });
+  }
+
+  function populateCourseTable(courses) {
+    const courseTableBody = document.getElementById('courseTable').querySelector('tbody');
+    courseTableBody.innerHTML = ''; // 清空表体
+
+    // 填充课程数据
+    courses.forEach(course => {
+      const row = `
+              <tr>
+                  <td>${course.id}</td>
+                  <td>${course.name}</td>
+                  <td>${course.credit}</td>
+                  <td>${course.difficulty}</td>
+                  <td>${course.numStudents}</td>
+                  <td>
+                      <button onclick="deleteCourse(${course.id})" class="danger-button">删除</button>
+                  </td>
+              </tr>
+          `;
+      courseTableBody.insertAdjacentHTML('beforeend', row);
+    });
+  }
+
+  function deleteCourse(courseId) {
+    if (confirm("您确定要删除这门课程吗？")) {
+      fetch(`http://localhost:8080/delCourseById/${courseId}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      })
+              .then(response => {
+                if (response.ok) {
+                  fetchCourseInfo(); // 重新获取课程信息
+                  fetchClassRooms(); // 重新获取班级信息
+                } else {
+                  alert('删除课程失败!');
+                }
+              })
+              .catch(error => {
+                console.error('删除课程时出现错误:', error);
+                alert('删除课程时出现错误!');
+              });
+    }
+
+  }
+
+  function addCourse() {
+    const id = document.getElementById('newCourseId').value;
+    const name = document.getElementById('newCourseName').value;
+    const credit = document.getElementById('newCourseCredit').value;
+    const difficulty = document.getElementById('newCourseDifficulty').value;
+
+    if (!id || !name || !credit || !difficulty) {
+      alert('请填写所有课程信息!');
+      return;
+    }
+
+    const newCourse = {
+      id: id,
+      name: name,
+      credit: parseInt(credit),
+      difficulty: parseInt(difficulty)
+    };
+
+    fetch('http://localhost:8080/addCourse', {
+      method: 'POST',
+      body: new URLSearchParams(newCourse)
+    })
+            .then(response => {
+              if (response.ok) {
+                fetchCourseInfo(); // 重新加载课程信息
+                // 清空输入框
+                document.getElementById('newCourseId').value = '';
+                document.getElementById('newCourseName').value = '';
+                document.getElementById('newCourseCredit').value = '';
+                document.getElementById('newCourseDifficulty').value = '';
+              } else {
+                alert('添加课程失败!');
+              }
+            })
+            .catch(error => {
+              console.error('添加课程时出现错误:', error);
+              alert('添加课程时出现错误!');
+            });
+  }
+  fetchCourseInfo();
+
+  // 获取所有班级信息并填充表格
+  function fetchClassRooms() {
+    fetch('http://localhost:8080/allClassroom')
+            .then(response => response.json())
+            .then(data => {
+              if (data.code === 200) {
+                const tableBody = document.getElementById('classroomsTableBody');
+                tableBody.innerHTML = ''; // 清空现有内容
+                data.data.forEach(classroom => {
+                  const row = document.createElement('tr');
+                  row.innerHTML = `
+                                <td>${classroom.id}</td>
+                                <td>${classroom.name}</td>
+                                <td>${classroom.courseId}</td>
+                                <td>${classroom.teacherId}</td>
+                                <td>${classroom.teacherName}</td>
+                                <td>${classroom.term}</td>
+                                <td>${classroom.numStudent}</td>
+                                <td><button onclick="deleteClassroom(${classroom.id})" class="danger-button">删除</button></td>
+                            `;
+                  tableBody.appendChild(row);
+                });
+              } else {
+                alert("获取班级信息失败！");
+              }
+            })
+            .catch(error => console.error('Error fetching classrooms:', error));
+  }
+
+  // 删除班级
+  function deleteClassroom(id) {
+    fetch(`http://localhost:8080/delClassroomById/${id}`, {
+      method: 'DELETE'
+    })
+            .then(response => response.json())
+            .then(data => {
+              if (data.code === 200) {
+                alert("班级已删除！");
+                fetchCourseInfo(); // 重新获取课程信息
+                fetchClassRooms(); // 重新获取班级信息
+              } else {
+                alert("删除班级失败！");
+              }
+            })
+            .catch(error => console.error('Error deleting classroom:', error));
+  }
+
+  // 增设班级
+  function addClassroom() {
+    const id = document.getElementById('newClassroomId').value;
+    const name = document.getElementById('newClassroomName').value;
+    const courseId = document.getElementById('newCourseId2').value;
+    const teacherId = document.getElementById('newTeacherId').value;
+    // const teacherName = document.getElementById('newTeacherName').value;
+    const term = document.getElementById('newTerm').value; // 获取学期
+    // const numStudent = document.getElementById('newNumStudent').value; // 获取人数
+
+    const formData = new URLSearchParams();
+    formData.append('id', id);
+    formData.append('name', name);
+    formData.append('courseId', courseId);
+    formData.append('teacherId', teacherId);
+    // formData.append('teacherName', teacherName);
+    formData.append('term', term);
+    // formData.append('numStudent', numStudent); // 添加人数
+
+    fetch('http://localhost:8080/addClassroom', {
+      method: 'POST',
+      body: formData,
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded'
+      }
+    })
+            .then(response => response.json())
+            .then(data => {
+              if (data.code === 200) {
+                alert("班级已增加！");
+                fetchClassRooms(); // 重新获取班级信息
+                // 清空输入框
+                document.getElementById('newClassroomId').value = '';
+                document.getElementById('newClassroomName').value = '';
+                document.getElementById('newCourseId').value = '';
+                document.getElementById('newTeacherId').value = '';
+                document.getElementById('newTeacherName').value = '';
+                document.getElementById('newTerm').value = '';
+                document.getElementById('newNumStudent').value = '';
+              } else {
+                alert("增加班级失败！");
+              }
+            })
+            .catch(error => console.error('Error adding classroom:', error));
+  }
+  fetchClassRooms();
+
+
+</script>
+</body>
+</html>

@@ -1,0 +1,128 @@
+body, html {
+    height: 100%;
+    margin: 0;
+    font-family: Arial, sans-serif;
+
+}
+video {
+    position: fixed; /* 使视频固定在视口中 */
+    top: 0; /* 视频顶部对齐页面顶部 */
+    left: 0; /* 视频左侧对齐页面左侧 */
+    width: 100%; /* 视频宽度 100% */
+    height: 100%; /* 视频高度 100% */
+    object-fit: cover; /* 保持视频纵横比并覆盖整个页面 */
+    z-index: -1; /* 背景视频位于所有元素之下 */
+}
+
+.container {
+    max-width: 1000px;
+    margin: 20px auto; /* 居中容器，并上下留有空间 */
+    z-index: 1; /* 确保内容在视频上方 */
+    background: rgba(255, 255, 255, 0.8); /* 白色半透明背景 */
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+th, td {
+    border: 1px solid #dddddd;
+    text-align: left;
+    padding: 8px;
+}
+th {
+    background-color: #f2f2f2;
+}
+
+.btn-enable {
+    color: white;
+    background-color: blue;
+}
+
+.btn-disable {
+    color: white;
+    background-color: crimson;
+}
+
+/* 将折叠按钮放到标题的右侧 */
+.collapse-button {
+    width: 0; /* 初始宽度为0 */
+    height: 0; /* 初始高度为0 */
+    border-left: 10px solid transparent; /* 形成三角形的左边 */
+    border-right: 10px solid transparent; /* 形成三角形的右边 */
+    border-bottom: 10px solid gray; /* 设置按钮的底边为灰色 */
+    cursor: pointer; /* 鼠标指针效果 */
+    margin-left: 10px; /* 给按钮一点左边距 */
+    transition: transform 0.3s; /* 添加平滑过渡效果 */
+}
+
+
+/* 初始化时隐藏表格（可选） */
+#feedbackTable {
+    display: table; /* 默认显示 */
+}
+button {
+    padding: 10px 20px; /* 内边距 */
+    font-size: 16px; /* 字体大小 */
+    border: none; /* 去掉边框 */
+    border-radius: 5px; /* 圆角 */
+    cursor: pointer; /* 鼠标手型 */
+    transition: background-color 0.3s, transform 0.2s; /* 背景颜色和变换的转换效果 */
+}
+
+/* Web1、Web2按钮样式 */
+.blue-button {
+    background-color: #007BFF; /* 蓝色背景 */
+    color: white; /* 白色文字 */
+}
+
+.blue-button:hover {
+    background-color: #0056b3; /* 悬停时更深的蓝色 */
+    transform: scale(1.05); /* 悬停时放大一点 */
+}
+
+/* 退出和注销账户按钮样式 */
+.danger-button,.modify-button {
+    background-color: crimson; /* 背景为深红色 */
+    color: white; /* 白色文本 */
+    padding: 10px 20px; /* 内边距 */
+    font-size: 16px; /* 字体大小 */
+    border: none; /* 去掉边框 */
+    border-radius: 5px; /* 圆角 */
+    cursor: pointer; /* 鼠标手型 */
+    transition: background-color 0.3s, transform 0.2s; /* 背景颜色和变换的转换效果 */
+}
+
+.danger-button:hover,.modify-button:hover {
+    background-color: darkred; /* 悬停时更深的红色 */
+    transform: scale(1.05); /* 悬停时放大一点 */
+}
+/* 小按钮样式 */
+.btn-small {
+    padding: 5px 10px; /* 小按钮的内边距 */
+    font-size: 14px; /* 小按钮的字体大小 */
+}
+
+/* 启用状态的样式（蓝色背景） */
+.btn-enable {
+    background-color: #007BFF; /* 启用按钮的蓝色背景 */
+    color: white; /* 白色文本 */
+}
+
+.btn-enable:hover {
+    background-color: #0056b3; /* 悬停时更深的蓝色 */
+    transform: scale(1.05); /* 悬停时稍微放大 */
+}
+
+/* 禁用状态的样式（红色背景） */
+.btn-disable {
+    background-color: #dc3545; /* 禁用按钮的红色背景 */
+    color: white; /* 白色文本 */
+}
+
+.btn-disable:hover {
+    background-color: #c82333; /* 悬停时更深的红色 */
+    transform: scale(1.05); /* 悬停时稍微放大 */
+}

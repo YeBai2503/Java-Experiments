@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>北港大学 | 教务端</title>
+  <link rel="icon" type="image/jpg" href="video/logo.png" sizes="32x32">
+  <link rel="stylesheet" href="css/normal.css">
+  <style>
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: center;
+    }
+    th {
+      cursor: pointer;
+      background-color: #f2f2f2;
+    }
+    th:hover {
+      background-color: #ddd;
+    }
+  </style>
+</head>
+<body>
+<video autoplay muted loop>
+  <source src="video/Waves.mp4" type="video/mp4">  <!-- 替换为您的 MP4 文件路径 -->
+  您的浏览器不支持视频标签。
+</video>
+<div class="container">
+  <h1 style="text-align: center;">北港大学成绩管理系统----教务端 | 学生总排名</h1><br>
+  <button onclick="window.location.href='manager.html';" class="danger-button" style="display: block; margin: 0 auto;">
+    返回
+  </button><br>
+
+  <div style="text-align: center;">
+    <label for="sortOptions">选择排序策略:</label>
+    <select id="sortOptions" onchange="sortTable()">
+      <option value="idRank">按学号排序</option>
+      <option value="gpaRank">按总成绩排序</option>
+      <!--剩下的自动填充-->
+    </select>
+
+
+  </div>
+
+  <table id="gradesTable">
+    <thead>
+    <tr>
+      <th>学号</th>
+      <th>姓名</th>
+      <th>性别</th>
+      <th>等级</th>
+    <tbody id="tableBody">
+    </tbody>
+    </tr>
+    </thead>
+  </table>
+
+
+</div>
+
+<script>
+  let studentData = [];
+  let courseNames = [];
+
+  // 1. 加载课程数据
+  async function loadCourseData() {
+    const response = await fetch('http://localhost:8080/allCourse');
+    const result = await response.json();
+
+    if (result.code === 200) {
+      courseNames = result.data.map(course => course.name);
+      fillCourseOptions(courseNames);
+      loadStudentData('idRank'); // 初始加载学号排序的数据
+    } else {
+      alert(result.message);
+    }
+  }
+
+  // 2. 填充课程选择器
+  function fillCourseOptions(courses) {
+    const courseSelector = document.getElementById('sortOptions');
+    courses.forEach(course => {
+      const option = document.createElement('option');
+      option.value = course;
+      option.textContent = '按《'+course+'》排序';
+      courseSelector.appendChild(option);
+    });
+
+    // 更新表头
+    const gradesTableHead = document.getElementById('gradesTable').querySelector('thead tr');
+    // 清空之前的各科成绩列（如果存在）
+    const currentCourseHeaders = Array.from(gradesTableHead.children).slice(4); // 获取现有科目列（从第5列开始）
+    currentCourseHeaders.forEach(header => gradesTableHead.removeChild(header));
+
+    // 动态添加课程列到表头
+    courses.forEach(course => {
+      const th = document.createElement('th');
+      th.textContent = course;
+      gradesTableHead.appendChild(th);
+    });
+    // 添加总成绩列
+    const totalHeader = document.createElement('th');
+    totalHeader.textContent = '总成绩';
+    gradesTableHead.appendChild(totalHeader);
+  }
+
+  // 3. 加载学生数据
+  async function loadStudentData(sortType) {
+    let url;
+    if (sortType === 'idRank') {
+      url = 'http://localhost:8080/idRank';
+    } else if (sortType === 'gpaRank') {
+      url = 'http://localhost:8080/gpaRank';
+    } else {
+      const courseName = sortType;
+      url = `http://localhost:8080/courseRank/${courseName}`;
+    }
+
+    const response = await fetch(url);
+    const result = await response.json();
+
+    if (result.code === 200) {
+      studentData = result.data;
+      renderTable();
+    } else {
+      alert(result.message);
+    }
+  }
+
+  // 4. 渲染学生表格
+  function renderTable() {
+    const tbody = document.getElementById('tableBody');
+    tbody.innerHTML = ''; // 清空表格
+
+    studentData.forEach(student => {
+      const row = document.createElement('tr');
+      const grades = student.courseGradeMap || {};
+      row.innerHTML = `
+        <td>${student.id}</td>
+        <td>${student.name}</td>
+        <td>${student.sex}</td>
+        <td>${student.level}</td>
+        ${courseNames.map(course => `<td>${grades[course] >= 0 ? grades[course] : '-'}</td>`).join('')}
+        <td>${student.gpa}</td>
+      `;
+      tbody.appendChild(row);
+    });
+  }
+
+  // 5. 排序表格
+  function sortTable() {
+    const sortValue = document.getElementById('sortOptions').value;
+    loadStudentData(sortValue);
+  }
+
+  window.onload = loadCourseData; // 页面加载时执行
+</script>
+</body>
+</html>

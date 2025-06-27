@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>北港大学 | 注册</title>
+  <link rel="icon" type="image/jpg" href="video/logo.png" sizes="32x32">
+<!--  <link rel="stylesheet" href="css/normal.css">-->
+  <style>
+    body, html {
+      height: 100%;
+      margin: 0;
+      font-family: Arial, sans-serif;
+      display: flex;
+      align-items: center; /* 垂直居中 */
+      justify-content: center; /* 水平居中 */
+      position: relative;
+      overflow: hidden; /* 避免背景视频溢出 */
+    }
+
+    video {
+      position: fixed; /* 使视频固定在视口中 */
+      top: 0; /* 视频顶部对齐页面顶部 */
+      left: 0; /* 视频左侧对齐页面左侧 */
+      width: 100%; /* 视频宽度 100% */
+      height: 100%; /* 视频高度 100% */
+      object-fit: cover; /* 保持视频纵横比并覆盖整个页面 */
+      z-index: -1; /* 背景视频位于所有元素之下 */
+    }
+
+    .container {
+      width: 18vw; /* 宽度设置为 40% */
+      z-index: 1; /* 确保内容在视频上方 */
+      background: rgba(255, 255, 255, 0.8); /* 白色半透明背景 */
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    }
+
+    .header {
+      text-align: center;
+    }
+
+    .error {
+      color: red;
+      font-weight: bold;
+      text-align: center;
+    }
+
+    .input-wrapper {
+      margin-bottom: 15px;
+      position: relative;
+    }
+
+    .input-wrapper input {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      box-sizing: border-box;
+    }
+
+    .switch-page {
+      text-align: center;
+    }
+    .switch-page button {
+      padding: 10px 20px; /* 添加内边距 */
+      font-size: 16px; /* 字体大小 */
+      color: white; /* 字体颜色 */
+      background-color: #4CAF50; /* 按钮背景颜色 */
+      border: none; /* 去掉边框 */
+      border-radius: 5px; /* 圆角边框 */
+      cursor: pointer; /* 鼠标悬停时显示为手型 */
+      transition: background-color 0.3s, transform 0.3s; /* 添加过渡效果 */
+    }
+
+    .switch-page button:hover {
+      background-color: #45a049; /* 悬停时的背景颜色 */
+      transform: translateY(-2px); /* 悬停时向上移动 */
+    }
+
+    .switch-page button:active {
+      transform: translateY(1px); /* 按钮点击时微微下沉 */
+    }
+  </style>
+</head>
+<body>
+<video autoplay muted loop>
+  <source src="video/Wave.mp4" type="video/mp4">  <!-- 替换为您的 MP4 文件路径 -->
+  您的浏览器不支持视频标签。
+</video>
+<div class="container">
+  <h1 style="text-align: center;">注册</h1>
+  <form id="registerForm">
+    <!-- 角色选择部分 -->
+    <div class="switch-role" style="text-align: center;">
+      <label>
+        <input type="radio" name="role" value="student" checked> 学生
+      </label>
+      <label>
+        <input type="radio" name="role" value="teacher"> 教师
+      </label>
+      <label>
+        <input type="radio" name="role" value="manager"> 教务
+      </label>
+    </div>
+
+    <!-- ID 输入框 -->
+    <div class="input-wrapper">
+      账号：<input type="text" id="registerId" name="id" placeholder="请输入账号" required>
+    </div>
+    <!-- 姓名输入框 -->
+    <div class="input-wrapper">
+      姓名：<input type="text" id="registerName" name="name" placeholder="请输入姓名" required>
+    </div>
+    <!-- 密码输入框 -->
+    <div class="input-wrapper">
+      密码：<input type="password" id="registerPassword" name="password" placeholder="请输入密码" required>
+    </div>
+    <!-- 性别输入框 -->
+    <div class="input-wrapper">
+      性别：
+      <select id="registerSex" name="sex" required>
+        <option value="">请选择性别</option>
+        <option value="男">男</option>
+        <option value="女">女</option>
+        <option value="其他">其他</option>
+      </select>
+    </div>
+    <div class="error" id="registerError"></div> <!-- 错误消息 -->
+    <div class="switch-page">
+      <button type="submit">注册</button> <!-- 注册按钮 -->
+    </div>
+  </form>
+</div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+    const registerForm = document.getElementById("registerForm");
+    const errorMessageElement = document.getElementById("registerError");
+
+    registerForm.addEventListener("submit", function(event) {
+      event.preventDefault(); // 防止表单默认提交
+
+      const formData = new FormData(registerForm);
+      const role = formData.get("role"); // 获取所选角色
+
+      let url;
+      // 选择正确的提交 URL
+      switch (role) {
+        case "student":
+          url = "http://localhost:8080/addStudent";
+          break;
+        case "teacher":
+          url = "http://localhost:8080/addTeacher";
+          break;
+        case "manager":
+          url = "http://localhost:8080/addManager";
+          break;
+        default:
+          errorMessageElement.textContent = "未知角色类型!";
+          return;
+      }
+
+      // 发送 POST 请求
+      fetch(url, {
+        method: 'POST',
+        body: new URLSearchParams(formData) // 明确使用 x-www-form-urlencoded 格式
+      })
+              .then(response => response.json())
+              .then(data => {
+                if (data.code === 200) {
+                  alert("注册成功！即将跳转到登录页面");
+                  window.location.href = "login.html"; // 注册成功后跳转
+                } else {
+                  errorMessageElement.textContent = "注册失败，请重试";
+                }
+              })
+              .catch(error => {
+                errorMessageElement.textContent = "网络错误，请重试";
+              });
+    });
+  });
+</script>
+</body>
+</html>
